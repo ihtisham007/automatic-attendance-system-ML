@@ -13,6 +13,11 @@ tests/validation
 # Ignore output folder
 output/
 
+# Ignore Learning folder
+Learning Phase/
+
 # Ignore IDE-specific files
 .vscode/
 .idea/
+
+

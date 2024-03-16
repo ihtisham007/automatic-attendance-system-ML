@@ -14,6 +14,11 @@ def main():
     y_position = (screen_height - window_height) // 2
 
     root.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+
+    # Configure grid to make columns expand evenly
+    root.grid_columnconfigure(0, weight=1)
+    root.grid_columnconfigure(1, weight=1)
+
     root.mainloop()
 
 if __name__ == "__main__":
