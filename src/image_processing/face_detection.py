@@ -10,7 +10,7 @@ class FaceRecognitionApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Face Recognition App")
-        self.DEFAULT_ENCODINGS_PATH = Path("./../../output/encodings.pkl")
+        self.DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
         self.BOUNDING_BOX_COLOR = "blue"
         self.TEXT_COLOR = "white"
 
@@ -74,7 +74,7 @@ class FaceRecognitionApp:
 
     def update_displayed_image(self, image_path, image_type):
         # Open the new image and convert it to PhotoImage
-        new_img = ImageTk.PhotoImage(Image.open(image_path))
+        new_img = ImageTk.PhotoImage(Image.open(image_path).resize((500,500)))
 
         # Update the image displayed in the label
         if image_type == "sample":
@@ -149,7 +149,7 @@ class FaceRecognitionApp:
         names = []
         encodings = []
 
-        for filepath in Path("./../../images/training").glob("*/*"):
+        for filepath in Path("images/training/face/").glob("*/*"):
             name = filepath.parent.name
             image = face_recognition.load_image_file(filepath)
 
@@ -226,7 +226,7 @@ class FaceRecognitionApp:
             self._display_face(draw, bounding_box, name)
 
         del draw
-        output_image_path = Path("./../../output/detected_images/") / f"{Path(image_location).stem}_annotated.jpg"
+        output_image_path = Path("output/detected_images/") / f"{Path(image_location).stem}_annotated.jpg"
         pillow_image.save(output_image_path)
         self.update_displayed_image(output_image_path,"detected")
         pillow_image.show()
