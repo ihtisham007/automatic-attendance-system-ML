@@ -4,14 +4,6 @@ __pycache__/
 # Ignore virtual environment
 venv/
 
-# Ignore images
-images/
-
-# Ignore test validation folder
-tests/validation
-
-# Ignore output folder
-output/
 
 # Ignore Learning folder
 Learning Phase/

@@ -10,7 +10,7 @@ class FaceRecognitionApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Face Recognition App")
-        self.DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
+        self.DEFAULT_ENCODINGS_PATH = Path("./../../output/encodings.pkl")
         self.BOUNDING_BOX_COLOR = "blue"
         self.TEXT_COLOR = "white"
 
@@ -49,8 +49,15 @@ class FaceRecognitionApp:
         label_simple_txt = tk.Label(root, text="Simple Image")
         label_simple_txt.grid(row=5, column=0, pady=7)
 
-        image_path_1 = "C:/Python Projects/Automatic Attendance System/images/training/ihtisham/WIN_20240302_16_26_21_Pro.jpg"
-        image_1 = ImageTk.PhotoImage(Image.open(image_path_1))
+        # Set desired dimensions
+        desired_width = 500
+        desired_height = 500
+
+        image_path_1 = "C:/Python Projects/Automatic Attendance System/images/training/face/elon_musk/161881.jpg"
+        image = Image.open(image_path_1)
+        # Resize the image to fit the desired dimensions
+        resized_image = image.resize((desired_width, desired_height))
+        image_1 = ImageTk.PhotoImage(resized_image)
         self.simple_image = tk.Label(root, image=image_1)
         self.simple_image.image = image_1  # Keep a reference to avoid garbage collection
         self.simple_image.grid(row=6, column=0, pady=10)
@@ -59,8 +66,8 @@ class FaceRecognitionApp:
         label_detected_txt = tk.Label(root, text="Detected Image")
         label_detected_txt.grid(row=5, column=1, pady=17)
 
-        image_path_2 = "C:/Python Projects/Automatic Attendance System/images/training/ihtisham/WIN_20240302_16_26_21_Pro.jpg"
-        image_2 = ImageTk.PhotoImage(Image.open(image_path_2))
+        image_path_2 = "C:/Python Projects/Automatic Attendance System/output/detected_images/161859_annotated.jpg"
+        image_2 = ImageTk.PhotoImage(Image.open(image_path_2).resize((desired_width,desired_height)))
         self.detected_image = tk.Label(root, image=image_2)
         self.detected_image.image = image_2  # Keep a reference to avoid garbage collection
         self.detected_image.grid(row=6, column=1, pady=10)
@@ -142,7 +149,7 @@ class FaceRecognitionApp:
         names = []
         encodings = []
 
-        for filepath in Path("images/training").glob("*/*"):
+        for filepath in Path("./../../images/training").glob("*/*"):
             name = filepath.parent.name
             image = face_recognition.load_image_file(filepath)
 
@@ -219,7 +226,7 @@ class FaceRecognitionApp:
             self._display_face(draw, bounding_box, name)
 
         del draw
-        output_image_path = Path("output/detected_images/") / f"{Path(image_location).stem}_annotated.jpg"
+        output_image_path = Path("./../../output/detected_images/") / f"{Path(image_location).stem}_annotated.jpg"
         pillow_image.save(output_image_path)
         self.update_displayed_image(output_image_path,"detected")
         pillow_image.show()
@@ -239,6 +246,7 @@ class FaceRecognitionApp:
             (left, top),
             name,
             fill=self.TEXT_COLOR,
+            size=40
         )
 
 

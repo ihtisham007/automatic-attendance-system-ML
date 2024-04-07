@@ -1,5 +1,5 @@
 import tkinter as tk
-from src.image_processing.face_detection import FaceRecognitionApp
+from face_detection import FaceRecognitionApp
 
 def main():
     root = tk.Tk()
