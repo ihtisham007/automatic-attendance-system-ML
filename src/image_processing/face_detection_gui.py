@@ -1,7 +1,7 @@
 import tkinter as tk
-from face_detection import FaceRecognitionApp
+from .face_detection import FaceRecognitionApp
 
-def main():
+def faceDetection():
     root = tk.Tk()
     app = FaceRecognitionApp(root)
 
@@ -21,5 +21,5 @@ def main():
 
     root.mainloop()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
