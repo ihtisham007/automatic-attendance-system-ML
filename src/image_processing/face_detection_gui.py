@@ -20,6 +20,3 @@ def faceDetection():
     root.grid_columnconfigure(1, weight=1)
 
     root.mainloop()
-
-# if __name__ == "__main__":
-#     main()

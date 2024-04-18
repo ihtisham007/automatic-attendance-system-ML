@@ -20,6 +20,12 @@ You can install them using the following command:
 pip install -r requirements.txt
 ```
 
-```bash
-python main.py
-```
+## Console Arguments 
+- For Face Detection
+````bash
+python ./main.py --detection-type=face
+````
+- For Text Extraction
+``````bash
+python ./main.py  --detection-type=text
+``````
