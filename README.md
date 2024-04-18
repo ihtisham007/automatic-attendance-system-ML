@@ -1,4 +1,4 @@
-# Automated Attendance System - README
+# Automated Attendance System
 
 """
 Automated Attendance System
