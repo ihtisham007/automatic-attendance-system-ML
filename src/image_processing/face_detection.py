@@ -53,7 +53,7 @@ class FaceRecognitionApp:
         desired_width = 500
         desired_height = 500
 
-        image_path_1 = "C:/Python Projects/Automatic Attendance System/images/training/face/elon_musk/161881.jpg"
+        image_path_1 = "C:/Python Projects/Automatic Attendance System/images/training/face/123456809/161881.jpg"
         image = Image.open(image_path_1)
         # Resize the image to fit the desired dimensions
         resized_image = image.resize((desired_width, desired_height))
@@ -230,6 +230,7 @@ class FaceRecognitionApp:
         pillow_image.save(output_image_path)
         self.update_displayed_image(output_image_path,"detected")
         pillow_image.show()
+        print(name)
 
     def _display_face(self, draw, bounding_box, name):
         """
