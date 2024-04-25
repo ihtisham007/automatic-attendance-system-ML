@@ -29,3 +29,14 @@ python ./main.py --detection-type=face
 ``````bash
 python ./main.py  --detection-type=text
 ``````
+
+- Run Backend API
+```bash
+cd API
+```
+```bash
+npm i
+```
+```bash
+npm start 
+```

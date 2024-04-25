@@ -11,5 +11,10 @@ Learning Phase/
 # Ignore IDE-specific files
 .vscode/
 .idea/
+/API/.vscode/
+/API/.idea
+
+/API/node_modules
+
 
 
