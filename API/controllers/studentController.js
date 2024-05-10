@@ -13,7 +13,7 @@ const AppError = require('./../utils/appError');
  *
  * */
 
-const getStudents = catchAsync(async (req, res, next) => {
+const getStudents = catchAsync(async (req, res, stat,next) => {
 
     const features = new APIFeatures(student.find(), req.query)
         .filter()
@@ -21,6 +21,7 @@ const getStudents = catchAsync(async (req, res, next) => {
         .limitFields()
         .paginate();
     const students = await features.query;
+
     res
         .status(200)
         .json({
@@ -28,6 +29,13 @@ const getStudents = catchAsync(async (req, res, next) => {
             data: students
         });
 });
+
+const getALLStudents = async () => {
+
+    const allStudents = await student.find();
+
+    return allStudents;
+};
 
 const saveStudent = catchAsync(async (req, res, next) => {
 
@@ -41,36 +49,12 @@ const saveStudent = catchAsync(async (req, res, next) => {
         });
 
 });
-//
-//const updateStudent = catchAsync(async (req, res, next) => {
-//    console.log(req.body);
-//    const foundStudent = await book.findByIdAndUpdate(req.params.id, req.body, { new: true,runValidators: true});
-//    if(!foundStudent) return next(new AppError('No book found with that ID', 404));
-//    res
-//        .status(200)
-//        .json({
-//            status: 'success',
-//            data: foundStudent
-//        });
-//});
-//
-//const deleteStudent = catchAsync(async (req, res, next) => {
-//    const FoundStudent = await book.findByIdAndDelete(req.params.id);
-//    if(!FoundStudent) return next(new AppError('No Student found with that ID', 404));
-//    res
-//        .status(200)
-//        .json({
-//            status: 'success',
-//            data: FoundStudent
-//        });
-//
-//});
 
-const saveAttendance = catchAsync(async (req, res, next) => {
+const saveAttendance = async (req, res, stat = 1) => {
 
      // Get the student ID from the request
         const studentId = req.params.id; // Assuming the student ID is in the URL parameter
-
+        console.log('asd');
         // Find the student by ID
         const foundStudent = await student.findOne({id: studentId})
 
@@ -79,7 +63,7 @@ const saveAttendance = catchAsync(async (req, res, next) => {
                 status: 'fail',
                 message: 'Student not found !!!'
             });
-        }
+        };
 
         // Create a new attendance record
         const newAttendance = {
@@ -90,11 +74,13 @@ const saveAttendance = catchAsync(async (req, res, next) => {
         // Save the attendance record
         const savedAttendance = await attendance.create(newAttendance);
 
+
         res.status(201).json({
             status: 'success',
-            data: savedAttendance
+            data: savedAttendance,
+            studentBio: foundStudent
         });
-});
+};
 
 const getAllStudentAttendance = catchAsync(async (req, res, next) => {
 
@@ -175,10 +161,9 @@ const getAttendance = async() => {
 
 module.exports = {
     getStudents,
+    getALLStudents,
     saveStudent,
     getAllStudentAttendance,
     saveAttendance,
     getAttendance,
-//    updateStudent,
-//    deleteStudent
 };

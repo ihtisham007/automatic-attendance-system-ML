@@ -2,9 +2,12 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, Radiobutton, StringVar
 from pathlib import Path
 from collections import Counter
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageDraw, ImageTk, ImageFont
 import face_recognition
 import pickle
+import requests
+import cv2
+import os
 
 class FaceRecognitionApp:
     def __init__(self, root):
@@ -13,6 +16,7 @@ class FaceRecognitionApp:
         self.DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
         self.BOUNDING_BOX_COLOR = "blue"
         self.TEXT_COLOR = "white"
+        self.attendance_marked = []
 
         self.label = tk.Label(root, text="Select an option: (HOG for CPU Processing and CNN For GPU Processing)")
         self.label.grid(row=0, columnspan=2, pady=10)
@@ -30,47 +34,52 @@ class FaceRecognitionApp:
         )
         self.cnn_radio.grid(row=1, column=1)
 
-        self.train_button = tk.Button(
-            root, text="Train Model", command=self.train_model
-        )
-        self.train_button.grid(row=2, column=0, columnspan=2, pady=5)
+        # self.train_button = tk.Button(
+        #     root, text="Train Model", command=self.train_model
+        # )
+        # self.train_button.grid(row=2, column=0, columnspan=2, pady=5)
 
-        self.validate_button = tk.Button(
-            root, text="Validate Model", command=self.validate_model
-        )
-        self.validate_button.grid(row=3, column=0, columnspan=2, pady=5)
+        # self.validate_button = tk.Button(
+        #     root, text="Validate Model", command=self.validate_model
+        # )
+        # self.validate_button.grid(row=3, column=0, columnspan=2, pady=5)
 
         self.test_button = tk.Button(
-            root, text="Test Model with Unknown Image", command=self.test_model
+            root, text="Take Attendance with Image", command=self.test_model
         )
         self.test_button.grid(row=4, column=0, columnspan=2, pady=5)
 
+        self.webcam_button = tk.Button(
+            root, text="Take Attendance from Webcam", command=self.face_recognition_webcam
+        )
+        self.webcam_button.grid(row=5, column=0, columnspan=2, pady=5)
+
         # Simple Image
         label_simple_txt = tk.Label(root, text="Simple Image")
-        label_simple_txt.grid(row=5, column=0, pady=7)
+        label_simple_txt.grid(row=6, column=0, pady=7)
 
         # Set desired dimensions
         desired_width = 500
         desired_height = 500
 
-        image_path_1 = "C:/Python Projects/Automatic Attendance System/images/training/face/123456809/161881.jpg"
-        image = Image.open(image_path_1)
+        image = Image.open('images/un_detected_image.jpeg')
         # Resize the image to fit the desired dimensions
         resized_image = image.resize((desired_width, desired_height))
         image_1 = ImageTk.PhotoImage(resized_image)
         self.simple_image = tk.Label(root, image=image_1)
         self.simple_image.image = image_1  # Keep a reference to avoid garbage collection
-        self.simple_image.grid(row=6, column=0, pady=10)
+        self.simple_image.grid(row=7, column=0, pady=10)
 
         # Detected Image
         label_detected_txt = tk.Label(root, text="Detected Image")
-        label_detected_txt.grid(row=5, column=1, pady=17)
+        label_detected_txt.grid(row=6, column=1, pady=17)
 
-        image_path_2 = "C:/Python Projects/Automatic Attendance System/output/detected_images/161859_annotated.jpg"
-        image_2 = ImageTk.PhotoImage(Image.open(image_path_2).resize((desired_width,desired_height)))
+        image_2 = ImageTk.PhotoImage(Image.open('images/detected_image.jpeg').resize((desired_width,desired_height)))
         self.detected_image = tk.Label(root, image=image_2)
         self.detected_image.image = image_2  # Keep a reference to avoid garbage collection
-        self.detected_image.grid(row=6, column=1, pady=10)
+        self.detected_image.grid(row=7, column=1, pady=10)
+
+        self.request_url = "http://localhost:3000/api/v1/student/"
 
     def update_displayed_image(self, image_path, image_type):
         # Open the new image and convert it to PhotoImage
@@ -100,6 +109,67 @@ class FaceRecognitionApp:
         else:
             messagebox.showwarning("No File Selected", "Please select an image file.")
 
+    def face_recognition_webcam(self):
+        # Initialize the video capture object
+        video_capture = cv2.VideoCapture(0)
+
+        while True:
+            # Capture frame-by-frame
+            ret, frame = video_capture.read()
+
+            # Recognize faces in the frame and mark attendance
+            frame_with_recognition = self.recognize_faces_from_frame(frame, self.model_var.get())
+
+            # Display the resulting frame
+            cv2.imshow('Video', frame_with_recognition)
+
+            # Display the resulting frame
+            # cv2.imshow('Video', frame)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Release the video capture object and close the window
+        video_capture.release()
+        cv2.destroyAllWindows()
+
+    def recognize_faces_from_frame(self, frame, model):
+        # Find face locations and encodings in the frame
+        face_locations = face_recognition.face_locations(frame, model=model)
+        face_encodings = face_recognition.face_encodings(frame, face_locations)
+
+        # Load encodings from the file
+        with open(self.DEFAULT_ENCODINGS_PATH, 'rb') as f:
+            loaded_encodings = pickle.load(f)
+
+        # Iterate through detected faces
+        for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+            # Recognize the face
+            name = self._recognize_face(face_encoding, loaded_encodings)
+
+            # Draw a rectangle around the face
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+
+            # If the face is recognized
+            if name:
+                print(name)
+                # Send request to the API if attendance hasn't been marked already
+                if name not in self.attendance_marked:
+                    response = requests.post(self.request_url + name + "/saveattendance", json={})
+                    if response.status_code == 201:
+                        response_data = response.json()
+                        messagebox.showinfo("Attendance Marked",
+                                            f"{response_data['studentBio']['name']} is marked present.")
+                        # Add the recognized face to the list of marked attendance
+                        self.attendance_marked.append(name)
+                    else:
+                        print(f'Error: {response.status_code}')
+
+                # Display the recognized name on the frame
+                cv2.putText(frame, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+        return frame
+
     def recognize_faces(
             self, image_location: str, model: str = "hog", encodings_location: Path = None
     ) -> None:
@@ -124,8 +194,6 @@ class FaceRecognitionApp:
 
         pillow_image = Image.fromarray(input_image)
         draw = ImageDraw.Draw(pillow_image)
-
-
 
         for bounding_box, unknown_encoding in zip(
                 input_face_locations, input_face_encodings
@@ -223,14 +291,21 @@ class FaceRecognitionApp:
             name = self._recognize_face(unknown_encoding, loaded_encodings)
             if not name:
                 name = "Unknown"
+            else:
+                response = requests.post(self.request_url +name+"/saveattendance", json={})
+                if response.status_code == 201:
+                    response_data = response.json()
+                    print(response_data['studentBio'])
+                    messagebox.showinfo("Attendance Marked", f"{response_data['studentBio']['name']} is marked present.")
+
+                else:
+                    print(f'Error: {response.status_code}')
             self._display_face(draw, bounding_box, name)
 
         del draw
         output_image_path = Path("output/detected_images/") / f"{Path(image_location).stem}_annotated.jpg"
         pillow_image.save(output_image_path)
         self.update_displayed_image(output_image_path,"detected")
-        pillow_image.show()
-        print(name)
 
     def _display_face(self, draw, bounding_box, name):
         """
@@ -239,15 +314,22 @@ class FaceRecognitionApp:
         top, right, bottom, left = bounding_box
         draw.rectangle(((left, top), (right, bottom)), outline=self.BOUNDING_BOX_COLOR)
 
+        # Determine maximum font size based on bounding box dimensions
+        max_font_size = min((right - left) // len(name), (bottom - top) // 2)
+
+        # Load font with maximum font size
+        font = ImageFont.truetype("arial.ttf", size=max_font_size)
+
         draw.rectangle(
-            ((left, top), (right, bottom)),
-            outline=self.BOUNDING_BOX_COLOR,
+                ((left, top), (right, bottom)),
+                outline=self.BOUNDING_BOX_COLOR,
+                width=4
         )
         draw.text(
             (left, top),
             name,
             fill=self.TEXT_COLOR,
-            size=40
+            font=font
         )
 
 

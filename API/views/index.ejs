@@ -4,46 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Overview</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
     <style>
     /* styles.css */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-}
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
 
-header {
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-}
+    header {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        padding: 1rem;
+    }
 
-nav ul {
-    list-style: none;
-    display: flex;
-    justify-content: center;
-    background-color: #eee;
-    padding: 0.5rem;
-}
+    nav ul {
+        list-style: none;
+        display: flex;
+        justify-content: center;
+        background-color: #eee;
+        padding: 0.5rem;
+    }
 
-nav li {
-    margin-right: 1rem;
-}
+    nav li {
+        margin-right: 1rem;
+    }
 
-nav a {
-    text-decoration: none;
-    color: #333;
-}
+    nav a {
+        text-decoration: none;
+        color: #333;
+    }
 
-footer {
-    text-align: center;
-    background-color: #333;
-    color: #fff;
-    padding: 1rem;
-}
 
+
+    .form-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 2rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .form-group button {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        background-color: #5cb85c;
+        color: white;
+        font-size: 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .form-group button:disabled {
+        background-color: #cccccc;
+    }
+    .loading-message {
+        display: none;
+    }
+
+    footer {
+        text-align: center;
+        background-color: #333;
+        color: #fff;
+        padding: 1rem;
+    }
+
+    .grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    }
+    .grid-layout img {
+        width: 100%;
+        height: auto;
+    }
+    .loading-message {
+        display: none;
+    }
     </style>
 </head>
 <body>
@@ -59,12 +113,99 @@ footer {
     </nav>
 
     <main>
-        <!-- Add project overview content here -->
-        <p>Welcome to our project! This is an overview of what we're building.</p>
+       <div class="form-container">
+        <form id="studentForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="studentId">Student ID:</label>
+                <input type="text" id="studentId" name="id" required>
+            </div>
+            <div class="form-group">
+                <label for="studentName">Name:</label>
+                <input type="text" id="studentName" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="department">Department:</label>
+                <select id="department" name="department" required>
+                    <option value="">Select Department</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Engineering">Engineering</option>
+                    <!-- Add more options here -->
+                </select>
+            </div>
+             <div class="form-group">
+                <label for="studentImages">Upload Images:</label>
+                <input type="file" id="studentImages" name="studentImages" multiple required>
+            </div>
+            <div class="form-group">
+                <button type="submit" id="submitButton">Submit</button>
+            </div>
+            </form>
+            <div id="imagePreview" class="grid-layout"></div>
+            <div class="loading-message" id="loadingMessage">Sending data...</div>
+            <div id="responseMessage"></div>
+        </div>
     </main>
+    <script>
+     $(document).ready(function() {
 
-    <footer>
-        <p>© 2024 Your Project Name</p>
-    </footer>
+            $('#studentImages').on('change', function() {
+                var files = this.files;
+                $('#imagePreview').empty();
+                if (files) {
+                    for (var i = 0; i < files.length; i++) {
+                        var reader = new FileReader();
+                        reader.onload = (function(file) {
+                            return function(e) {
+                                $('#imagePreview').append(
+                                    $('<img>').attr('src', e.target.result).attr('alt', file.name)
+                                );
+                            };
+                        })(files[i]);
+                        reader.readAsDataURL(files[i]);
+                    }
+                }
+            });
+
+
+            $('#studentForm').on('submit', function(e) {
+                e.preventDefault();
+
+                $('#submitButton').attr('disabled', true);
+                $('#loadingMessage').show();
+
+                $.ajax({
+                    url: 'http://localhost:3000/api/v1/student/',
+                    type: 'POST',
+                    data: {
+                        id: $(this).find('#studentId').val(),
+                        name: $(this).find('#studentName').val(),
+                        department: $(this).find('#department').val()
+                    },
+                    success: function(response) {
+                        $('#responseMessage').html(response.message);
+                        $('#loadingMessage').hide();
+                        $('#submitButton').attr('disabled', false);
+                         swal({
+                            title: "Success!",
+                            text: response.message,
+                            icon: "success",
+                            button: "OK",
+                         });
+                    },
+                    error: function() {
+                         $('#responseMessage').html('An error occurred. Please try again.');
+                         $('#loadingMessage').hide();
+                         $('#submitButton').attr('disabled', false);
+                        swal({
+                            title: "Error!",
+                            text: "An error occurred. Please try again.",
+                            icon: "error",
+                            button: "OK",
+                        });
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

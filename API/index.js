@@ -24,12 +24,13 @@ application.get('/', (req,res) =>{
     res.render('index')
 })
 
-application.get('/student', (req,res)=>{
-    res.render('student')
-})
+application.get('/student', async(req,res)=>{
+    const students = await studentController.getALLStudents();
+    res.render('student', {data : students})
+});
 
 application.get('/attendance', async(req,res)=>{
-    const data  = await studentController.getAttendance()
+    const data  = await studentController.getAttendance(req, res)
     console.log(data)
     res.render('attendance', {data : data})
 })
