@@ -15,6 +15,8 @@ parser.add_argument('--detection-type', type=str, help='Type of detection to run
 # Parse the arguments
 args = parser.parse_args()
 
+import dlib
+print(dlib.cuda.get_num_devices())
 
 def encode_known_faces(
         encoding_location, model

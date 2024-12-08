@@ -10,6 +10,11 @@ route
     .get(studentController.getStudents)
     .post(studentController.saveStudent);
 
+
+route
+    .route('/:id/getstudentname')
+    .get(studentController.getStudentNameById)
+
 // Route for handling student attendance
 route
     .route('/getAllStudentAttendance')

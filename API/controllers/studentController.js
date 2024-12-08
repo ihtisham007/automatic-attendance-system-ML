@@ -37,6 +37,24 @@ const getALLStudents = async () => {
     return allStudents;
 };
 
+const getStudentNameById = catchAsync(async (req,res,next) =>{
+
+
+    const getStudentName = await student.find({id: req.params.id})
+
+    let status = 200
+
+    !getStudentNameById ? status = 201: status = 200
+
+    res
+        .status(status)
+        .json({
+            status: 'success',
+            data: getStudentName
+        });
+
+});
+
 const saveStudent = catchAsync(async (req, res, next) => {
 
     const newStudent = req.body;
@@ -162,6 +180,7 @@ const getAttendance = async() => {
 module.exports = {
     getStudents,
     getALLStudents,
+    getStudentNameById,
     saveStudent,
     getAllStudentAttendance,
     saveAttendance,
